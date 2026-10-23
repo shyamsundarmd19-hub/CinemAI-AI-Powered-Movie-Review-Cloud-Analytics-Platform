@@ -1,0 +1,79 @@
+name: CinemAI Continuous Deployment (EC2 Native Direct Host)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate-and-build:
+    name: Lint, Validate & Build Artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      # 1. Setup Python & Backend Checks
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Dependencies & Run Syntax Tests
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          python -c "
+          import ast, glob
+          for py_file in glob.glob('backend/app/**/*.py', recursive=True):
+              ast.parse(open(py_file, encoding='utf-8').read())
+          print('✓ All Python backend files validated successfully.')
+          "
+
+      # 2. Setup Node.js & Frontend Build Test
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package.json
+
+      - name: Build React SPA (Tailwind + Vite)
+        run: |
+          cd frontend
+          npm install
+          npm run build
+        env:
+          VITE_API_URL: "/api"
+
+  deploy-to-ec2:
+    name: Deploy to AWS EC2 (No Docker)
+    needs: validate-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy via SSH to EC2 Instance
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER || 'ubuntu' }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            echo "Starting automated native deployment on EC2 host..."
+            cd /home/ubuntu/cinemai
+            sudo bash scripts/deploy.sh
+
+      - name: Smoke Test Health Endpoint
+        run: |
+          echo "Verifying CinemAI public availability..."
+          curl -f -s -S --retry 5 --retry-delay 3 http://${{ secrets.EC2_HOST }}/api/health || {
+            echo "Smoke test health check failed!"
+            exit 1
+          }
+          echo "✓ CinemAI service is operational on AWS EC2!"
