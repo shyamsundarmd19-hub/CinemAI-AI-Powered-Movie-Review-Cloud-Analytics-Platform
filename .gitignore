@@ -32,3 +32,4 @@ load_test_*.html
 .idea/
 .DS_Store
 Thumbs.db
+*.db

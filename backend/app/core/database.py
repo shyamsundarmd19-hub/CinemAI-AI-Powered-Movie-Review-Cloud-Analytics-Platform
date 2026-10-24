@@ -7,16 +7,29 @@ database_url = settings.DATABASE_URL
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-# Handle SQLite vs PostgreSQL engine options
 connect_args = {}
 if database_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
-engine = create_engine(
-    database_url,
-    connect_args=connect_args,
-    pool_pre_ping=True
-)
+try:
+    engine = create_engine(
+        database_url,
+        connect_args=connect_args,
+        pool_pre_ping=True
+    )
+    # Test connection
+    with engine.connect() as conn:
+        pass
+except Exception as e:
+    print(f"[Database Notice] Could not connect to {database_url}: {e}")
+    print("[Database Notice] Falling back to local SQLite: sqlite:///./cinemai.db")
+    database_url = "sqlite:///./cinemai.db"
+    connect_args = {"check_same_thread": False}
+    engine = create_engine(
+        database_url,
+        connect_args=connect_args,
+        pool_pre_ping=True
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
