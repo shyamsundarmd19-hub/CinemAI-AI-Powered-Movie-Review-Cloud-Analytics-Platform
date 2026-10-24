@@ -8,6 +8,7 @@ import { ReviewSubmissionPage } from './pages/ReviewSubmissionPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { SandboxPage } from './pages/SandboxPage';
 import { Film, ShieldCheck, Heart } from 'lucide-react';
 
 export function App() {
@@ -22,6 +23,7 @@ export function App() {
           <div className="flex-1">
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/sandbox" element={<SandboxPage />} />
               <Route path="/movie/:id" element={<MovieDetailPage />} />
               <Route path="/movie/:id/review" element={<ReviewSubmissionPage />} />
               <Route path="/login" element={<LoginPage />} />

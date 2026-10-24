@@ -41,6 +41,14 @@ export const Navbar = () => {
               Movies
             </Link>
 
+            <Link
+              to="/sandbox"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#881337] hover:text-[#E11D48] hover:bg-[#FFE4E6] rounded-lg transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#E11D48]" />
+              <span>DL Sandbox</span>
+            </Link>
+
             {isAdmin && (
               <Link
                 to="/admin/dashboard"
