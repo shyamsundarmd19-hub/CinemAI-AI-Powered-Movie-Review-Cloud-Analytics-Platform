@@ -4,7 +4,8 @@ from .schemas import (
     ReviewCreate, ReviewResponse,
     SentimentAnalyticsResponse,
     PresignedUrlRequest, PresignedUrlResponse,
-    AdminAnalyticsResponse
+    AdminAnalyticsResponse,
+    LiveAnalyzeRequest, LiveAnalyzeResponse
 )
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "ReviewCreate", "ReviewResponse",
     "SentimentAnalyticsResponse",
     "PresignedUrlRequest", "PresignedUrlResponse",
-    "AdminAnalyticsResponse"
+    "AdminAnalyticsResponse",
+    "LiveAnalyzeRequest", "LiveAnalyzeResponse"
 ]

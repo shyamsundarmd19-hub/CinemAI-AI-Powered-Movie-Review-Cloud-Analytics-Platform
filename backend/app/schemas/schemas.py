@@ -132,3 +132,21 @@ class AdminAnalyticsResponse(BaseModel):
     overall_sentiment_breakdown: Dict[str, float]
     flagged_queue: List[ReviewResponse]
     system_metrics: Dict[str, Any]
+
+# -----------------------------------------------------------------------------
+# TanglishFlix Deep Learning Live Analyzer Schemas
+# -----------------------------------------------------------------------------
+class LiveAnalyzeRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=5000, description="Raw Tanglish or English movie review text")
+
+class LiveAnalyzeResponse(BaseModel):
+    sentiment_label: str
+    confidence_pct: float
+    sentiment_score: float
+    detected_tanglish_keywords: List[str] = []
+    keyword_details: Optional[List[Dict[str, Any]]] = None
+    detected_emojis: Optional[List[str]] = None
+    flag_toxic: bool = False
+    toxic_reasons: Optional[List[str]] = []
+    dl_model: Optional[str] = "TanglishFlix-BiLSTM-Transformer-v1"
+    breakdown: Optional[Dict[str, float]] = None

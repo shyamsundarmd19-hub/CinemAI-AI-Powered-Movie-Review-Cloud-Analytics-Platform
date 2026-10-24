@@ -84,6 +84,10 @@ export const movieService = {
 // Reviews Services
 // -----------------------------------------------------------------------------
 export const reviewService = {
+  analyzeLive: async (text) => {
+    const res = await api.post('/analyze-live', { text });
+    return res.data;
+  },
   submitReview: async (reviewData) => {
     const res = await api.post('/reviews', reviewData);
     return res.data;

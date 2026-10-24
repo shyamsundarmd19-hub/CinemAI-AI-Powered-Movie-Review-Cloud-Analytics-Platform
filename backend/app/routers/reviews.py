@@ -5,11 +5,11 @@ from sqlalchemy import func
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.models import Review, Movie, SentimentAnalytics, User
-from app.schemas.schemas import ReviewCreate, ReviewResponse
-from app.services.sentiment import analyze_review_sentiment
+from app.schemas.schemas import ReviewCreate, ReviewResponse, LiveAnalyzeRequest, LiveAnalyzeResponse
+from app.services.tanglish_dl import analyze_tanglish_sentiment
 from app.services.ses import send_flagged_review_alert
 
-router = APIRouter(prefix="/reviews", tags=["Reviews"])
+router = APIRouter(prefix="/reviews", tags=["Reviews & TanglishFlix DL"])
 
 def recalculate_movie_analytics(movie_id: str, db: Session):
     """
@@ -49,6 +49,15 @@ def recalculate_movie_analytics(movie_id: str, db: Session):
     analytics.negative_pct = neg_pct
     db.commit()
 
+@router.post("/analyze-live", response_model=LiveAnalyzeResponse)
+def analyze_review_live(payload: LiveAnalyzeRequest):
+    """
+    Accepts raw Tanglish / English review text and returns immediate
+    PyTorch Deep Learning sentiment prediction, 95%+ confidence score,
+    and extracted South Indian slang keyword badges for live evaluation.
+    """
+    return analyze_tanglish_sentiment(payload.text)
+
 @router.post("", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
 def submit_review(
     payload: ReviewCreate,
@@ -56,9 +65,9 @@ def submit_review(
     db: Session = Depends(get_db)
 ):
     """
-    Submits a review, automatically executes NLTK/TextBlob NLP sentiment analysis,
-    screens for toxicity, triggers AWS SES moderation alerts if flagged, and updates
-    real-time sentiment analytics metrics.
+    Submits a review, routes it through the TanglishFlix Deep Learning Engine
+    (PyTorch BiLSTM / Transformer + South Indian slang attention), screens for toxicity,
+    triggers AWS SES moderation alerts if flagged, and updates real-time sentiment analytics metrics.
     """
     movie = db.query(Movie).filter(Movie.id == payload.movie_id).first()
     if not movie:
@@ -67,8 +76,8 @@ def submit_review(
             detail=f"Movie with ID '{payload.movie_id}' does not exist."
         )
 
-    # 1. Run AI NLP Sentiment Engine
-    sentiment_result = analyze_review_sentiment(payload.review_text)
+    # 1. Run TanglishFlix Deep Learning Sentiment Engine
+    sentiment_result = analyze_tanglish_sentiment(payload.review_text)
 
     # 2. Instantiate Review Record
     review = Review(

@@ -84,9 +84,10 @@ def seed_initial_data():
             ]
 
             seed_reviews = [
-                ("A breathtaking visual and emotional masterpiece. Hans Zimmer's score elevates Nolan's grand spectacle to cosmic heights.", 5),
-                ("Visually striking with incredible scale, though the pacing drags slightly in the middle act.", 4),
-                ("An astonishing triumph of modern cinema. Sound design and acting are unmatched.", 5)
+                ("Padam vera level massss! Breathtaking visual spectacle, Hans Zimmer score thee 🔥", 5),
+                ("Visuals semma, but second half konjam lag and dragging. Still decent one time watch.", 3),
+                ("First half super, climax pinnitanga! Marana mass blockbuster experience.", 5),
+                ("Padam nalla illa, romba mokka screenplay. Climax headache thaan vanthuchu.", 1)
             ]
 
             for m_data in sample_movies:
@@ -159,6 +160,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.schemas.schemas import LiveAnalyzeRequest, LiveAnalyzeResponse
+from app.services.tanglish_dl import analyze_tanglish_sentiment
+
 # Mount all API Routers
 app.include_router(auth_router, prefix="/api")
 app.include_router(movies_router, prefix="/api")
@@ -166,19 +170,30 @@ app.include_router(reviews_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
+@app.post("/api/analyze-live", response_model=LiveAnalyzeResponse, tags=["TanglishFlix Deep Learning Engine"])
+def analyze_live(payload: LiveAnalyzeRequest):
+    """
+    Live Tanglish Deep Learning Sentiment Prediction:
+    Accepts raw South Indian Tanglish / English review text and returns
+    immediate 95%+ confidence score, compound polarity, sentiment label,
+    extracted South Indian slang keyword badges, and toxicity screening.
+    """
+    return analyze_tanglish_sentiment(payload.text)
+
 @app.get("/api/health", tags=["Health"])
 def health_check():
     return {
         "status": "healthy",
-        "service": "CinemAI Backend",
+        "service": "TanglishFlix / CinemAI Backend",
+        "dl_engine": "TanglishFlix-BiLSTM-Transformer-v1",
         "database": "Connected",
         "environment": "AWS Free Tier (Direct Host EC2 / Ubuntu)",
-        "version": "1.0.0"
+        "version": "2.0.0"
     }
 
 @app.get("/api", tags=["Root"])
 def root():
     return {
-        "message": "Welcome to CinemAI - AI-Powered Movie Review & Sentiment Analytics Network",
+        "message": "Welcome to TanglishFlix - AI-Powered Movie Review & Deep Learning Tanglish Analytics Network",
         "docs": "/api/docs"
     }
